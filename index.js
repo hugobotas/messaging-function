@@ -1,11 +1,31 @@
 const functions= require('@google-cloud/functions-framework');
+const nodeMailer = require("nodemailer");
+
+function sendEmail(attributes) {
+    const transporter = nodeMailer.createTransport({
+        host: "smtp.freesmtpservers.com",
+        port: 25,
+        secure: false
+    });
+    const mailOptions = {
+        from: "hugobotas@teste.com",
+        to: attributes.to,
+        bcc: "",
+        subject: attributes.subject,
+        text: attributes.text
+    };
+    transporter
+        .sendMail(mailOptions)
+        .then(() => console.log("Sent"))
+        .catch(e => console.log("Error"));
+}
 
 functions.cloudEvent('helloCloudEvents', (cloudevent) => {
-    console.log(cloudevent.specversion);
-    console.log(cloudevent.type);
-    console.log(cloudevent.source);
-    console.log(cloudevent.subject);
-    console.log(cloudevent.id);
-    console.log(cloudevent.time);
-    console.log(cloudevent.datacontenttype);
+    switch (cloudevent.data.message.type.toLowerCase()) {
+        case 'email':
+            sendEmail(cloudevent.data.message.attributes)
+            break
+        default:
+            console.log("Log error")
+    }
 });
